@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Александр Коновалов](https://up.htmlacademy.ru/javascript/20/user/1082475).
-* Наставник: `Неизвестно`.
+* Наставник: [Артем Макаров](https://htmlacademy.ru/profile/deepsick).
 
 ---
 
