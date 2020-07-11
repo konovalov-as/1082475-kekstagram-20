@@ -1443,3 +1443,14 @@ main {
 .hidden {
   display: none;
 }
+
+.error-message {
+  position: absolute;
+  font-size: 36px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 30px 10px;
+  text-align: center;
+  background-color: darkorange;
+}
