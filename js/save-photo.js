@@ -21,9 +21,10 @@
   var biggerButton = imageEditingBlock.querySelector('.scale__control--bigger');
   var scaleValue = imageEditingBlock.querySelector('.scale__control--value');
 
-  var hashtagsInput = photoSavingForm.querySelector('.text__hashtags');
-
   var fileChooser = photoSavingForm.querySelector('#upload-file');
+
+  var hashtagsInput = photoSavingForm.querySelector('.text__hashtags');
+  var commentText = photoSavingForm.querySelector('.text__description');
 
   // reads an image selected by the user
   fileChooser.addEventListener('change', function () {
@@ -102,7 +103,7 @@
 
   });
 
-  // checks hashtags
+  // validates hashtags
   var checkHashtags = function () {
     var hashtags = (hashtagsInput.value.trim()).split(' ');
 
@@ -162,10 +163,23 @@
 
   hashtagsInput.addEventListener('input', function () {
     checkHashtags();
+  });
 
-    hashtagsInput.addEventListener('keydown', function (evt) {
-      evt.stopPropagation();
-    });
+  hashtagsInput.addEventListener('keydown', function (evt) {
+    evt.stopPropagation();
+  });
+
+  // validates a user comment
+  var maxCommentTextLength = commentText.maxLength;
+  commentText.addEventListener('input', function () {
+    if (commentText.validity.tooLong) {
+      commentText.setCustomValidity('Пожалуйста, не меньше ' + maxCommentTextLength);
+      return;
+    }
+  });
+
+  commentText.addEventListener('keydown', function (evt) {
+    evt.stopPropagation();
   });
 
   var onPhotoSavingFormSubmit = function (evt) {
