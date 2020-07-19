@@ -1,15 +1,15 @@
 'use strict';
 
 (function () {
-  // gets a block for inserting photos
-  var photoBlock = document.querySelector('.pictures');
+  // get a container for inserting photos
+  var photoContainer = document.querySelector('.pictures');
 
-  // gets a photo template
+  // get a photo template
   var photoTemplate = document.querySelector('#picture')
     .content
     .querySelector('.picture');
 
-  // creates a photo
+  // create a photo
   var createPhoto = function (image) {
     var imageElement = photoTemplate.cloneNode(true);
     imageElement.querySelector('.picture__img').src = image.url;
@@ -18,24 +18,24 @@
     return imageElement;
   };
 
-  // renders photos on the page
+  // render photos on the page
   var renderPhotos = function (photos) {
     var fragment = document.createDocumentFragment();
     photos.forEach(function (photo, indexPhoto) {
       fragment.appendChild(createPhoto(photo, indexPhoto));
     });
-    photoBlock.appendChild(fragment);
+    photoContainer.appendChild(fragment);
   };
 
-  // receives photos from the server
+  // get photos from the server
   var onLoad = function (photos) {
     renderPhotos(photos);
-    photoBlock.addEventListener('click', function (evt) {
-      window.view.onPhotoBlockClick(evt, photos);
+    photoContainer.addEventListener('click', function (evt) {
+      window.view.onPhotoContainerClick(evt, photos);
     });
   };
 
-  // displays an error message
+  // display an error message
   var onError = function (errorMessage) {
     var node = document.createElement('div');
     node.classList.add('error-message');
