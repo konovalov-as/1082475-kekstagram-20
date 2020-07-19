@@ -4,7 +4,6 @@
   var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
   var HIDDEN_CLASS = 'hidden';
   var OPEN_MODAL = 'modal-open';
-  var ESCAPE = window.const.Key.ESCAPE;
   var DEFAULT_SCALE = 100;
   var SCALE_STEP = 25;
   var REGULAR_EXPRESSION = /[^A-Za-z0-9А-Яа-я]/;
@@ -14,19 +13,19 @@
   var photoSavingForm = body.querySelector('.img-upload__form');
   var closeButton = photoSavingForm.querySelector('#upload-cancel');
 
-  var imageEditingBlock = photoSavingForm.querySelector('.img-upload__overlay');
-  var preview = imageEditingBlock.querySelector('.img-upload__preview img');
-  var slide = imageEditingBlock.querySelector('.effect-level__pin');
-  var smallerButton = imageEditingBlock.querySelector('.scale__control--smaller');
-  var biggerButton = imageEditingBlock.querySelector('.scale__control--bigger');
-  var scaleValue = imageEditingBlock.querySelector('.scale__control--value');
+  var imageEditingContainer = photoSavingForm.querySelector('.img-upload__overlay');
+  var previewImg = imageEditingContainer.querySelector('.img-upload__preview img');
+  var slide = imageEditingContainer.querySelector('.effect-level__pin');
+  var smallerButton = imageEditingContainer.querySelector('.scale__control--smaller');
+  var biggerButton = imageEditingContainer.querySelector('.scale__control--bigger');
+  var scaleValueInput = imageEditingContainer.querySelector('.scale__control--value');
 
   var fileChooser = photoSavingForm.querySelector('#upload-file');
 
   var hashtagsInput = photoSavingForm.querySelector('.text__hashtags');
   var commentText = photoSavingForm.querySelector('.text__description');
 
-  // reads an image selected by the user
+  // read an image selected by the user
   fileChooser.addEventListener('change', function () {
     var file = fileChooser.files[0];
     var fileName = file.name.toLowerCase();
@@ -39,36 +38,36 @@
       var reader = new FileReader();
 
       reader.addEventListener('load', function () {
-        // writes a new image url
-        preview.src = reader.result;
-        imageEditingBlock.classList.remove(HIDDEN_CLASS);
+        // write a new image url
+        previewImg.src = reader.result;
+        imageEditingContainer.classList.remove(HIDDEN_CLASS);
         body.classList.add(OPEN_MODAL);
       });
 
       reader.readAsDataURL(file);
     }
 
-    // image loading window closing handler
-    var onImageEditingBlockClose = function () {
-      imageEditingBlock.classList.add(HIDDEN_CLASS);
+    // an image loading window closing handler
+    var onImageEditingContainerClose = function () {
+      imageEditingContainer.classList.add(HIDDEN_CLASS);
       body.classList.remove(OPEN_MODAL);
       fileChooser.value = '';
 
-      // removes handlers
+      // remove handlers
       document.removeEventListener('keydown', isEscape);
-      closeButton.removeEventListener('click', onImageEditingBlockClose);
+      closeButton.removeEventListener('click', onImageEditingContainerClose);
       smallerButton.removeEventListener('click', onSmallerButtonClick);
       biggerButton.removeEventListener('click', onBiggerButtonClick);
       photoSavingForm.removeEventListener('submit', onPhotoSavingFormSubmit);
     };
 
     var isEscape = function (evt) {
-      if (evt.key === ESCAPE) {
-        onImageEditingBlockClose();
+      if (evt.key === window.const.Key.ESCAPE) {
+        onImageEditingContainerClose();
       }
     };
 
-    closeButton.addEventListener('click', onImageEditingBlockClose);
+    closeButton.addEventListener('click', onImageEditingContainerClose);
     document.addEventListener('keydown', isEscape);
 
     slide.addEventListener('mouseup', function (evt) {
@@ -77,37 +76,37 @@
     });
 
     var onSmallerButtonClick = function () {
-      var scaleCurrentValue = Number(scaleValue.value.slice(0, -1));
+      var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
       if (scaleCurrentValue > SCALE_STEP) {
         scaleCurrentValue -= SCALE_STEP;
-        preview.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
-        scaleValue.value = scaleCurrentValue + '%';
+        previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
+        scaleValueInput.value = scaleCurrentValue + '%';
       }
     };
 
     var onBiggerButtonClick = function () {
-      var scaleCurrentValue = Number(scaleValue.value.slice(0, -1));
+      var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
       if (scaleCurrentValue < 100) {
         scaleCurrentValue += SCALE_STEP;
-        preview.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
-        scaleValue.value = scaleCurrentValue + '%';
+        previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
+        scaleValueInput.value = scaleCurrentValue + '%';
       }
     };
 
     smallerButton.addEventListener('click', onSmallerButtonClick);
     biggerButton.addEventListener('click', onBiggerButtonClick);
 
-    // sets a default value
-    scaleValue.value = DEFAULT_SCALE + '%';
-    preview.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
+    // set a default scale value
+    scaleValueInput.value = DEFAULT_SCALE + '%';
+    previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
 
   });
 
-  // validates hashtags
+  // validate hashtags
   var checkHashtags = function () {
     var hashtags = (hashtagsInput.value.trim()).split(' ');
 
-    // collects unique hashtags
+    // collect unique hashtags
     var uniqueHashtags = [];
     var isOneHashtags = function (hashtag) {
       var hashtagLowerCase = hashtag.toLowerCase();
@@ -169,7 +168,7 @@
     evt.stopPropagation();
   });
 
-  // validates a user comment
+  // validate a user comment
   var maxCommentTextLength = commentText.maxLength;
   commentText.addEventListener('input', function () {
     if (commentText.validity.tooLong) {
@@ -187,7 +186,7 @@
     // evt.preventDefault();
   };
 
-  // submits a photo saving form
+  // submit a photo saving form
   photoSavingForm.addEventListener('submit', onPhotoSavingFormSubmit);
 
 
