@@ -16,6 +16,7 @@
   var imageEditingContainer = photoSavingForm.querySelector('.img-upload__overlay');
   var effectFieldset = photoSavingForm.querySelector('.effect-level');
   var previewImg = imageEditingContainer.querySelector('.img-upload__preview img');
+  var previewImgDefault = previewImg.attributes.src.value;
 
   var slidePin = imageEditingContainer.querySelector('.effect-level__pin');
   var slideLine = imageEditingContainer.querySelector('.effect-level__line');
@@ -298,9 +299,107 @@
 
 
   // ---------------------- submit a form -------------------
+  // get a container to insert a popup
+  var mainContainer = document.querySelector('main');
+
+  // get a success popup template
+  var successPopupTemplate = document.querySelector('#success')
+    .content
+    .querySelector('.success');
+
+  // get a error popup template
+  var errorPopupTemplate = document.querySelector('#error')
+    .content
+    .querySelector('.error');
+
+  // create an ad label
+  var renderPopup = function (popup) {
+    var popupElement = popup.cloneNode(true);
+    mainContainer.appendChild(popupElement);
+  };
+
+  var resetPhotoSavingForm = function () {
+    previewImg.src = previewImgDefault;
+
+    imageEditingContainer.classList.add(HIDDEN_CLASS);
+    body.classList.remove(OPEN_MODAL);
+
+    // effectFieldset.classList.add('hidden');
+    effectList.querySelector('#effect-none').checked = true;
+    previewImg.className = '';
+    previewImg.style.filter = 'none';
+
+    scaleValueInput.value = DEFAULT_SCALE + '%';
+    previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
+  };
+
+  // send an ad to the server
+  var closePopupByKey = function (evt, popup) {
+    if (!evt.key === window.const.Key.ESCAPE) {
+      return;
+    }
+    if (popup) {
+      popup.remove();
+    }
+  };
+
+  // success callback for send an offer to the server
+  var onFormSuccess = function () {
+    renderPopup(successPopupTemplate);
+
+    // close a popup by a click
+    var successContainer = mainContainer.querySelector('.success');
+
+    successContainer.addEventListener('click', function (evt) {
+      if (!(evt.target.matches('.success') || evt.target.matches('.success__button'))) {
+        return;
+      }
+      successContainer.remove();
+      document.removeEventListener('keydown', onSuccessPopupPress);
+    });
+
+    // close a popup by an Esc key
+    var onSuccessPopupPress = function (evt) {
+      closePopupByKey(evt, successContainer);
+      document.removeEventListener('keydown', onSuccessPopupPress);
+    };
+
+    // success popup close handler
+    document.addEventListener('keydown', onSuccessPopupPress);
+
+    resetPhotoSavingForm();
+  };
+
+  // error callback for send an offer to the server
+  var onFormError = function () {
+    renderPopup(errorPopupTemplate);
+
+    // close a popup by a click
+    var errorContainer = mainContainer.querySelector('.error');
+
+    // addListeners(errorContainer);
+    // close a popup by a click
+    errorContainer.addEventListener('click', function (evt) {
+      if (!(evt.target.matches('.error') || evt.target.matches('.error__button'))) {
+        return;
+      }
+      errorContainer.remove();
+      document.removeEventListener('keydown', onErrorPopupPress);
+    });
+
+    // close a popup by an Esc key
+    var onErrorPopupPress = function (evt) {
+      closePopupByKey(evt, errorContainer);
+      document.removeEventListener('keydown', onErrorPopupPress);
+    };
+
+    // error popup close handler
+    document.addEventListener('keydown', onErrorPopupPress);
+  };
+
   var onPhotoSavingFormSubmit = function (evt) {
-    return evt;
-    // evt.preventDefault();
+    evt.preventDefault();
+    window.backend.save(new FormData(photoSavingForm), onFormSuccess, onFormError);
   };
 
   // submit a photo saving form
