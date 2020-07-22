@@ -14,8 +14,16 @@
   var closeButton = photoSavingForm.querySelector('#upload-cancel');
 
   var imageEditingContainer = photoSavingForm.querySelector('.img-upload__overlay');
+  var effectFieldset = photoSavingForm.querySelector('.effect-level');
   var previewImg = imageEditingContainer.querySelector('.img-upload__preview img');
-  var slide = imageEditingContainer.querySelector('.effect-level__pin');
+
+  var slidePin = imageEditingContainer.querySelector('.effect-level__pin');
+  var slideLine = imageEditingContainer.querySelector('.effect-level__line');
+  var effectDepth = imageEditingContainer.querySelector('.effect-level__depth');
+
+  var effectList = imageEditingContainer.querySelector('.effects__list');
+  var effectLevelValue = imageEditingContainer.querySelector('.effect-level__value');
+
   var smallerButton = imageEditingContainer.querySelector('.scale__control--smaller');
   var biggerButton = imageEditingContainer.querySelector('.scale__control--bigger');
   var scaleValueInput = imageEditingContainer.querySelector('.scale__control--value');
@@ -27,6 +35,8 @@
 
   // read an image selected by the user
   fileChooser.addEventListener('change', function () {
+    effectFieldset.classList.add('hidden');
+
     var file = fileChooser.files[0];
     var fileName = file.name.toLowerCase();
 
@@ -47,11 +57,20 @@
       reader.readAsDataURL(file);
     }
 
+    // ---------------------- close a popup ---------------------
     // an image loading window closing handler
     var onImageEditingContainerClose = function () {
       imageEditingContainer.classList.add(HIDDEN_CLASS);
       body.classList.remove(OPEN_MODAL);
       fileChooser.value = '';
+
+      previewImg.className = '';
+
+      previewImg.style.filter = '';
+
+      slidePin.style.left = '453px';
+      effectDepth.style.width = '453px';
+      effectList.querySelector('#effect-none').checked = true;
 
       // remove handlers
       document.removeEventListener('keydown', isEscape);
@@ -69,12 +88,10 @@
 
     closeButton.addEventListener('click', onImageEditingContainerClose);
     document.addEventListener('keydown', isEscape);
+    // ---------------------- close a popup ---------------------
 
-    slide.addEventListener('mouseup', function (evt) {
-      return evt;
-      // console.log(evt);
-    });
 
+    // ---------------------- change a scale --------------------
     var onSmallerButtonClick = function () {
       var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
       if (scaleCurrentValue > SCALE_STEP) {
@@ -99,8 +116,106 @@
     // set a default scale value
     scaleValueInput.value = DEFAULT_SCALE + '%';
     previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
+    // ---------------------- change a scale --------------------
 
+
+    // ---------------------- move a slide --------------------
+    var EffectToNameMap = {
+      chrome: 'grayscale',
+      sepia: 'sepia',
+      marvin: 'invert',
+      phobos: 'blur',
+      heat: 'brightness',
+    };
+
+    slidePin.style.left = '453px';
+    effectDepth.style.width = '453px';
+    effectLevelValue.value = '100';
+
+    var xCoord;
+    var onSlideLineMousedown = function (evt) {
+      if (!(evt.button === window.const.MOUSE_LEFT_BUTTON)) {
+        return;
+      }
+
+      evt.preventDefault();
+      var startX = evt.clintX;
+
+      var onSlideLineMousemove = function (moveEvt) {
+        moveEvt.preventDefault();
+        var shiftX = startX - moveEvt.clientX;
+        startX = moveEvt.clientX;
+        xCoord = slidePin.offsetLeft - shiftX;
+        if (xCoord >= 0 && xCoord <= 453) {
+          slidePin.style.left = xCoord + 'px';
+          effectDepth.style.width = xCoord + 'px';
+
+          var effectValue = Math.round((xCoord / 453) * 100);
+          effectLevelValue.value = effectValue;
+
+          var effectName = EffectToNameMap[selectedEffect];
+
+          if (effectName === 'blur') {
+            var effectValue1 = Math.round((effectValue / 100 * 3) * 100) / 100 + 'px';
+            previewImg.style.filter = effectName + '(' + effectValue1 + ')';
+            return;
+          }
+          if (effectName === 'brightness') {
+            var effectValue2 = effectValue / 100 * 2 + 1;
+            previewImg.style.filter = '';
+            previewImg.style.filter = effectName + '(' + effectValue2 + ')';
+            return;
+          }
+          previewImg.style.filter = effectName + '(' + effectValue / 100 + ')';
+        }
+      };
+
+      var onSlideLineMouseup = function (upEvt) {
+        upEvt.preventDefault();
+        document.removeEventListener('mousemove', onSlideLineMousemove);
+        document.removeEventListener('mouseup', onSlideLineMouseup);
+      };
+
+      document.addEventListener('mousemove', onSlideLineMousemove);
+      document.addEventListener('mouseup', onSlideLineMouseup);
+    };
+
+    slideLine.addEventListener('mousedown', onSlideLineMousedown);
   });
+  // ---------------------- move a slide --------------------
+
+
+  // ---------------------- set an effect -------------------
+  var setPictureEffect = function (effect) {
+    if (effect === 'none') {
+      effectFieldset.classList.add('hidden');
+      previewImg.className = '';
+      previewImg.style.filter = 'none';
+      return;
+    }
+
+    effectFieldset.classList.remove('hidden');
+    previewImg.className = '';
+    previewImg.style.filter = '';
+
+    previewImg.classList.add('effects__preview--' + effect);
+
+    slidePin.style.left = '453px';
+    effectDepth.style.width = '453px';
+    effectLevelValue.value = '100';
+  };
+
+  var selectedEffect;
+  var onEffectListClick = function (evt) {
+    if (!(evt.target.matches('input[name="effect"]'))) {
+      return;
+    }
+    selectedEffect = evt.target.value;
+    setPictureEffect(selectedEffect);
+  };
+  effectList.addEventListener('click', onEffectListClick);
+  // ---------------------- set an effect -------------------
+
 
   // validate hashtags
   var checkHashtags = function () {
@@ -181,6 +296,8 @@
     evt.stopPropagation();
   });
 
+
+  // ---------------------- submit a form -------------------
   var onPhotoSavingFormSubmit = function (evt) {
     return evt;
     // evt.preventDefault();
@@ -188,6 +305,6 @@
 
   // submit a photo saving form
   photoSavingForm.addEventListener('submit', onPhotoSavingFormSubmit);
-
+  // ---------------------- submit a form -------------------
 
 })();
