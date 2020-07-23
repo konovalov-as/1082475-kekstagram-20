@@ -3,6 +3,7 @@
 (function () {
   var HIDDEN_CLASS = 'hidden';
   var OPEN_MODAL = 'modal-open';
+  var MAX_COMMENTS_COUNT = 5;
 
   // get a big photo container
   var bigPhotoContainer = document.querySelector('.big-picture');
@@ -30,6 +31,44 @@
     commentsContainer.appendChild(fragment);
   };
 
+  var showComments = function (commentsContainer, photoElement) {
+    var showedComments = MAX_COMMENTS_COUNT;
+    var allComments = commentsContainer.children;
+    var commentsLoadBtn = photoElement.querySelector('.comments-loader');
+    var commentsCount = photoElement.querySelector('.comments-showed');
+
+    var getNextComments = function () {
+      for (var i = 0; i < allComments.length; i++) {
+        if (i < showedComments) {
+          allComments[i].classList.remove(HIDDEN_CLASS);
+        } else {
+          allComments[i].classList.add(HIDDEN_CLASS);
+        }
+      }
+      commentsCount.textContent = showedComments;
+    };
+
+    if (allComments.length < MAX_COMMENTS_COUNT) {
+      commentsLoadBtn.classList.add(HIDDEN_CLASS);
+      commentsCount.textContent = allComments.length;
+    } else {
+      commentsLoadBtn.classList.remove(HIDDEN_CLASS);
+      getNextComments();
+    }
+
+    commentsLoadBtn.addEventListener('click', function () {
+      showedComments += MAX_COMMENTS_COUNT;
+
+      if (showedComments < allComments.length) {
+        commentsLoadBtn.classList.remove(HIDDEN_CLASS);
+      } else {
+        commentsLoadBtn.classList.add(HIDDEN_CLASS);
+        showedComments = allComments.length;
+      }
+      getNextComments();
+    });
+  };
+
   // create a big photo
   var createView = function (photo) {
     var photoElement = bigPhotoContainer.cloneNode(true);
@@ -42,6 +81,7 @@
 
     var commentsContainer = photoElement.querySelector('.social__comments');
     renderComments(photo.comments, commentsContainer);
+    showComments(commentsContainer, photoElement);
 
     // a big photo close callback by a click
     var onCloseButtonClick = function () {
@@ -61,7 +101,6 @@
       onCloseButtonClick();
     };
     document.addEventListener('keydown', onDocumentPress);
-
     return photoElement;
   };
 
