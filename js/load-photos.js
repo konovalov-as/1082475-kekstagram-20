@@ -52,13 +52,22 @@
     return Math.floor(Math.random() * (max - min + 1)) + min; // Максимум и минимум включаются
   };
 
+  var setActiveButton = function (evt) {
+    Array.from(evt.target.parentElement).forEach(function (button) {
+      button.classList.remove('img-filters__button--active');
+    });
+    evt.target.classList.add('img-filters__button--active');
+  };
+
   var setFiltersPhotos = function (evt, photos) {
     var filterPhotos = [];
     if (evt.target.matches('#filter-default')) {
+      setActiveButton(evt);
       filterPhotos = photos.slice();
     }
 
     if (evt.target.matches('#filter-random')) {
+      setActiveButton(evt);
       while (filterPhotos.length < 10) {
         var randomNumber = getRandomNumber(0, photos.length - 1);
         if (!filterPhotos.includes(photos[randomNumber])) {
@@ -68,6 +77,7 @@
     }
 
     if (evt.target.matches('#filter-discussed')) {
+      setActiveButton(evt);
       var photosCopy = photos.slice();
       photosCopy.sort(function (first, second) {
         if (first.comments.length < second.comments.length) {
@@ -78,7 +88,6 @@
         }
         return 0;
       });
-
       filterPhotos = photosCopy;
     }
 
@@ -102,7 +111,6 @@
       }
       window.debounce(function () {
         setFiltersPhotos(evt, photos);
-
       });
     };
     filterForm.addEventListener('click', onFilterFormClick);
