@@ -24,6 +24,7 @@
 
   var effectList = imageEditingContainer.querySelector('.effects__list');
   var effectLevelValue = imageEditingContainer.querySelector('.effect-level__value');
+  var effectPreviewImgs = effectList.querySelectorAll('.effects__preview');
 
   var smallerButton = imageEditingContainer.querySelector('.scale__control--smaller');
   var biggerButton = imageEditingContainer.querySelector('.scale__control--bigger');
@@ -51,6 +52,11 @@
       reader.addEventListener('load', function () {
         // write a new image url
         previewImg.src = reader.result;
+
+        effectPreviewImgs.forEach(function (image) {
+          image.style.backgroundImage = 'url(' + reader.result + ')';
+        });
+
         imageEditingContainer.classList.remove(HIDDEN_CLASS);
         body.classList.add(OPEN_MODAL);
       });
