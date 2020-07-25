@@ -6,7 +6,7 @@
   var OPEN_MODAL = 'modal-open';
   var DEFAULT_SCALE = 100;
   var SCALE_STEP = 25;
-  var REGULAR_EXPRESSION = /[^A-Za-z0-9А-Яа-я]/;
+  var SLIDE_LINE_WIDTH = '453px';
 
   var body = document.querySelector('body');
 
@@ -32,12 +32,36 @@
 
   var fileChooser = photoSavingForm.querySelector('#upload-file');
 
-  var hashtagsInput = photoSavingForm.querySelector('.text__hashtags');
-  var commentText = photoSavingForm.querySelector('.text__description');
+  var setDefaultScale = function () {
+    scaleValueInput.value = DEFAULT_SCALE + '%';
+    previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
+  };
 
-  // read an image selected by the user
-  fileChooser.addEventListener('change', function () {
-    effectFieldset.classList.add('hidden');
+  var setDefaultSlide = function () {
+    slidePin.style.left = SLIDE_LINE_WIDTH;
+    effectDepth.style.width = SLIDE_LINE_WIDTH;
+    effectLevelValue.value = '100';
+  };
+
+  var changeFilter = function () {
+    previewImg.className = '';
+    previewImg.style.filter = '';
+  };
+
+  var resetPhotoSavingForm = function () {
+    body.classList.remove(OPEN_MODAL);
+    imageEditingContainer.classList.add(HIDDEN_CLASS);
+    fileChooser.value = '';
+    previewImg.src = previewImgDefault;
+    effectList.querySelector('#effect-none').checked = true;
+    changeFilter();
+    setDefaultScale();
+    setDefaultSlide();
+    photoSavingForm.reset();
+  };
+
+  var readFile = function () {
+    effectFieldset.classList.add(HIDDEN_CLASS);
 
     var file = fileChooser.files[0];
     var fileName = file.name.toLowerCase();
@@ -63,153 +87,133 @@
 
       reader.readAsDataURL(file);
     }
+  };
 
-    // ---------------------- close a popup ---------------------
-    // an image loading window closing handler
-    var onImageEditingContainerClose = function () {
-      imageEditingContainer.classList.add(HIDDEN_CLASS);
-      body.classList.remove(OPEN_MODAL);
-      fileChooser.value = '';
+  // ---------------------- close a popup ---------------------
+  // an image loading window closing handler
+  var onImageEditingContainerClose = function () {
+    resetPhotoSavingForm();
+  };
 
-      previewImg.className = '';
+  var isEscape = function (evt) {
+    if (evt.key === window.const.Key.ESCAPE) {
+      resetPhotoSavingForm();
+    }
+  };
 
-      previewImg.style.filter = '';
+  closeButton.addEventListener('click', onImageEditingContainerClose);
+  document.addEventListener('keydown', isEscape);
+  // ---------------------- close a popup ---------------------
 
-      slidePin.style.left = '453px';
-      effectDepth.style.width = '453px';
-      effectList.querySelector('#effect-none').checked = true;
+  // ---------------------- change a scale --------------------
+  var onSmallerButtonClick = function () {
+    var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
+    if (scaleCurrentValue > SCALE_STEP) {
+      scaleCurrentValue -= SCALE_STEP;
+      previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
+      scaleValueInput.value = scaleCurrentValue + '%';
+    }
+  };
 
-      // remove handlers
-      document.removeEventListener('keydown', isEscape);
-      closeButton.removeEventListener('click', onImageEditingContainerClose);
-      smallerButton.removeEventListener('click', onSmallerButtonClick);
-      biggerButton.removeEventListener('click', onBiggerButtonClick);
-      photoSavingForm.removeEventListener('submit', onPhotoSavingFormSubmit);
-    };
+  var onBiggerButtonClick = function () {
+    var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
+    if (scaleCurrentValue < 100) {
+      scaleCurrentValue += SCALE_STEP;
+      previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
+      scaleValueInput.value = scaleCurrentValue + '%';
+    }
+  };
 
-    var isEscape = function (evt) {
-      if (evt.key === window.const.Key.ESCAPE) {
-        onImageEditingContainerClose();
-      }
-    };
+  smallerButton.addEventListener('click', onSmallerButtonClick);
+  biggerButton.addEventListener('click', onBiggerButtonClick);
+  // ---------------------- change a scale --------------------
 
-    closeButton.addEventListener('click', onImageEditingContainerClose);
-    document.addEventListener('keydown', isEscape);
-    // ---------------------- close a popup ---------------------
+  // ---------------------- move a slide --------------------
+  var EffectToNameMap = {
+    chrome: 'grayscale',
+    sepia: 'sepia',
+    marvin: 'invert',
+    phobos: 'blur',
+    heat: 'brightness',
+  };
 
+  // slidePin.style.left = '453px';
+  // effectDepth.style.width = '453px';
+  // effectLevelValue.value = '100';
 
-    // ---------------------- change a scale --------------------
-    var onSmallerButtonClick = function () {
-      var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
-      if (scaleCurrentValue > SCALE_STEP) {
-        scaleCurrentValue -= SCALE_STEP;
-        previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
-        scaleValueInput.value = scaleCurrentValue + '%';
-      }
-    };
+  var xCoord;
+  var onSlideLineMousedown = function (evt) {
+    if (!(evt.button === window.const.MOUSE_LEFT_BUTTON)) {
+      return;
+    }
 
-    var onBiggerButtonClick = function () {
-      var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
-      if (scaleCurrentValue < 100) {
-        scaleCurrentValue += SCALE_STEP;
-        previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
-        scaleValueInput.value = scaleCurrentValue + '%';
-      }
-    };
+    evt.preventDefault();
+    var startX = evt.clintX;
 
-    smallerButton.addEventListener('click', onSmallerButtonClick);
-    biggerButton.addEventListener('click', onBiggerButtonClick);
+    var onSlideLineMousemove = function (moveEvt) {
+      moveEvt.preventDefault();
+      var shiftX = startX - moveEvt.clientX;
+      startX = moveEvt.clientX;
+      xCoord = slidePin.offsetLeft - shiftX;
+      if (xCoord >= 0 && xCoord <= 453) {
+        slidePin.style.left = xCoord + 'px';
+        effectDepth.style.width = xCoord + 'px';
 
-    // set a default scale value
-    scaleValueInput.value = DEFAULT_SCALE + '%';
-    previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
-    // ---------------------- change a scale --------------------
+        var effectValue = Math.round((xCoord / 453) * 100);
+        effectLevelValue.value = effectValue;
 
+        var effectName = EffectToNameMap[selectedEffect];
 
-    // ---------------------- move a slide --------------------
-    var EffectToNameMap = {
-      chrome: 'grayscale',
-      sepia: 'sepia',
-      marvin: 'invert',
-      phobos: 'blur',
-      heat: 'brightness',
-    };
-
-    slidePin.style.left = '453px';
-    effectDepth.style.width = '453px';
-    effectLevelValue.value = '100';
-
-    var xCoord;
-    var onSlideLineMousedown = function (evt) {
-      if (!(evt.button === window.const.MOUSE_LEFT_BUTTON)) {
-        return;
-      }
-
-      evt.preventDefault();
-      var startX = evt.clintX;
-
-      var onSlideLineMousemove = function (moveEvt) {
-        moveEvt.preventDefault();
-        var shiftX = startX - moveEvt.clientX;
-        startX = moveEvt.clientX;
-        xCoord = slidePin.offsetLeft - shiftX;
-        if (xCoord >= 0 && xCoord <= 453) {
-          slidePin.style.left = xCoord + 'px';
-          effectDepth.style.width = xCoord + 'px';
-
-          var effectValue = Math.round((xCoord / 453) * 100);
-          effectLevelValue.value = effectValue;
-
-          var effectName = EffectToNameMap[selectedEffect];
-
-          if (effectName === 'blur') {
-            var effectValue1 = Math.round((effectValue / 100 * 3) * 100) / 100 + 'px';
-            previewImg.style.filter = effectName + '(' + effectValue1 + ')';
-            return;
-          }
-          if (effectName === 'brightness') {
-            var effectValue2 = effectValue / 100 * 2 + 1;
-            previewImg.style.filter = '';
-            previewImg.style.filter = effectName + '(' + effectValue2 + ')';
-            return;
-          }
-          previewImg.style.filter = effectName + '(' + effectValue / 100 + ')';
+        if (effectName === 'blur') {
+          var effectValue1 = Math.round((effectValue / 100 * 3) * 100) / 100 + 'px';
+          previewImg.style.filter = effectName + '(' + effectValue1 + ')';
+          return;
         }
-      };
-
-      var onSlideLineMouseup = function (upEvt) {
-        upEvt.preventDefault();
-        document.removeEventListener('mousemove', onSlideLineMousemove);
-        document.removeEventListener('mouseup', onSlideLineMouseup);
-      };
-
-      document.addEventListener('mousemove', onSlideLineMousemove);
-      document.addEventListener('mouseup', onSlideLineMouseup);
+        if (effectName === 'brightness') {
+          var effectValue2 = effectValue / 100 * 2 + 1;
+          previewImg.style.filter = '';
+          previewImg.style.filter = effectName + '(' + effectValue2 + ')';
+          return;
+        }
+        previewImg.style.filter = effectName + '(' + effectValue / 100 + ')';
+      }
     };
+
+    var onSlideLineMouseup = function (upEvt) {
+      upEvt.preventDefault();
+      document.removeEventListener('mousemove', onSlideLineMousemove);
+      document.removeEventListener('mouseup', onSlideLineMouseup);
+    };
+
+    document.addEventListener('mousemove', onSlideLineMousemove);
+    document.addEventListener('mouseup', onSlideLineMouseup);
+  };
+  // ---------------------- move a slide --------------------
+
+  // read an image selected by the user
+  fileChooser.addEventListener('change', function () {
+    setDefaultScale();
+
+    readFile();
 
     slideLine.addEventListener('mousedown', onSlideLineMousedown);
   });
-  // ---------------------- move a slide --------------------
 
 
   // ---------------------- set an effect -------------------
   var setPictureEffect = function (effect) {
     if (effect === 'none') {
       effectFieldset.classList.add('hidden');
-      previewImg.className = '';
-      previewImg.style.filter = 'none';
+      changeFilter();
       return;
     }
-
     effectFieldset.classList.remove('hidden');
-    previewImg.className = '';
-    previewImg.style.filter = '';
+
+    changeFilter();
 
     previewImg.classList.add('effects__preview--' + effect);
 
-    slidePin.style.left = '453px';
-    effectDepth.style.width = '453px';
-    effectLevelValue.value = '100';
+    setDefaultSlide();
   };
 
   var selectedEffect;
@@ -222,86 +226,6 @@
   };
   effectList.addEventListener('click', onEffectListClick);
   // ---------------------- set an effect -------------------
-
-
-  // validate hashtags
-  var checkHashtags = function () {
-    var hashtags = (hashtagsInput.value.trim()).split(' ');
-
-    // collect unique hashtags
-    var uniqueHashtags = [];
-    var isOneHashtags = function (hashtag) {
-      var hashtagLowerCase = hashtag.toLowerCase();
-      var isOne = false;
-      if (uniqueHashtags.indexOf(hashtagLowerCase) !== -1) {
-        isOne = true;
-      }
-      uniqueHashtags.push(hashtagLowerCase);
-      return isOne;
-    };
-
-    for (var i = 0; i < hashtags.length; i++) {
-      var hashtag = hashtags[i];
-      if (hashtag === '') {
-        return;
-      }
-      if (hashtag[0] !== '#') {
-        hashtagsInput.setCustomValidity(i + 1 + '-ый хэш-тег (' + hashtag + ') должен начинаться с символа # (решётка)');
-        return;
-      }
-      if (hashtag.slice(-1) === ',') {
-        hashtagsInput.setCustomValidity('Хэш-теги разделяются пробелами');
-        return;
-      }
-      if (REGULAR_EXPRESSION.test(hashtag.replace('#', ''))) {
-        hashtagsInput.setCustomValidity('Строка после символа # (решётка) должна состоять только из букв и чисел. Пробелы, эмодзи, спецсимволы (#, @, $, - и т. п.) не допустимы. ' + (i + 1) + '-ый хэш-тег с ошибкой');
-        return;
-      }
-      if (hashtag[0] === '#' && hashtag.length === 1) {
-        hashtagsInput.setCustomValidity(i + 1 + '-ый хэш-тег (' + hashtag + ') не может состоять только из одной символа ' + hashtag + ' (решётка)');
-        return;
-      }
-      if (hashtag.length > 20) {
-        hashtagsInput.setCustomValidity('Максимальная длина одного хэш-тега 20 символов, включая решётку');
-        return;
-      }
-      if (i > 4) {
-        hashtagsInput.setCustomValidity('Нельзя указать больше пяти хэш-тегов');
-        return;
-      }
-      if (isOneHashtags(hashtag)) {
-        hashtagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды. Хэш-теги нечувствительны к регистру. #ХэшТег и #хэштег считаются одним и тем же тегом');
-        return;
-      }
-      hashtagsInput.setCustomValidity('');
-    }
-  };
-  checkHashtags();
-
-  hashtagsInput.addEventListener('invalid', function () {
-    checkHashtags();
-  });
-
-  hashtagsInput.addEventListener('input', function () {
-    checkHashtags();
-  });
-
-  hashtagsInput.addEventListener('keydown', function (evt) {
-    evt.stopPropagation();
-  });
-
-  // validate a user comment
-  var maxCommentTextLength = commentText.maxLength;
-  commentText.addEventListener('input', function () {
-    if (commentText.validity.tooLong) {
-      commentText.setCustomValidity('Пожалуйста, не меньше ' + maxCommentTextLength);
-      return;
-    }
-  });
-
-  commentText.addEventListener('keydown', function (evt) {
-    evt.stopPropagation();
-  });
 
 
   // ---------------------- submit a form -------------------
@@ -322,21 +246,6 @@
   var renderPopup = function (popup) {
     var popupElement = popup.cloneNode(true);
     mainContainer.appendChild(popupElement);
-  };
-
-  var resetPhotoSavingForm = function () {
-    previewImg.src = previewImgDefault;
-
-    imageEditingContainer.classList.add(HIDDEN_CLASS);
-    body.classList.remove(OPEN_MODAL);
-
-    // effectFieldset.classList.add('hidden');
-    effectList.querySelector('#effect-none').checked = true;
-    previewImg.className = '';
-    previewImg.style.filter = 'none';
-
-    scaleValueInput.value = DEFAULT_SCALE + '%';
-    previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
   };
 
   // send an ad to the server
@@ -383,7 +292,6 @@
     // close a popup by a click
     var errorContainer = mainContainer.querySelector('.error');
 
-    // addListeners(errorContainer);
     // close a popup by a click
     errorContainer.addEventListener('click', function (evt) {
       if (!(evt.target.matches('.error') || evt.target.matches('.error__button'))) {
