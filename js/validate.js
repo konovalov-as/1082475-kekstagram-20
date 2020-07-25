@@ -2,6 +2,8 @@
 
 (function () {
   var REGULAR_EXPRESSION = /[^A-Za-z0-9А-Яа-я]/;
+  var HASHTAG_MAX_LENGTH = 20;
+  var MAX_HASHTAGS_COUNT = 5;
   var hashtagsInput = document.querySelector('.text__hashtags');
   var commentText = document.querySelector('.text__description');
 
@@ -42,12 +44,12 @@
         hashtagsInput.setCustomValidity(i + 1 + '-ый хэш-тег (' + hashtag + ') не может состоять только из одной символа ' + hashtag + ' (решётка)');
         return;
       }
-      if (hashtag.length > 20) {
-        hashtagsInput.setCustomValidity('Максимальная длина одного хэш-тега 20 символов, включая решётку');
+      if (hashtag.length > HASHTAG_MAX_LENGTH) {
+        hashtagsInput.setCustomValidity('Максимальная длина одного хэш-тега ' + HASHTAG_MAX_LENGTH + ' символов, включая решётку');
         return;
       }
-      if (i > 4) {
-        hashtagsInput.setCustomValidity('Нельзя указать больше пяти хэш-тегов');
+      if (!(i < MAX_HASHTAGS_COUNT)) {
+        hashtagsInput.setCustomValidity('Нельзя указать больше ' + MAX_HASHTAGS_COUNT + ' хэш-тегов');
         return;
       }
       if (isOneHashtags(hashtag)) {
