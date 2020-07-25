@@ -3,44 +3,55 @@
 (function () {
   var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
   var HIDDEN_CLASS = 'hidden';
-  var OPEN_MODAL = 'modal-open';
+  var OPENED_POPUP = 'modal-open';
   var DEFAULT_SCALE = 100;
   var SCALE_STEP = 25;
-  var SLIDE_LINE_WIDTH = '453px';
+  var DEFAULT_EFFECT_LEVEL = 100;
+  var BLUR_MAX_VALUE = 3;
+  var BRIGHTNESS_MAX_VALUE = 2;
+  var NO_EFFECT = 'none';
+  var XBound = {
+    LEFT: 0,
+    RIGHT: 453,
+  };
+  var Effect = {
+    BLUR: 'blur',
+    BRIGHTNESS: 'brightness',
+  };
 
   var body = document.querySelector('body');
 
   var photoSavingForm = body.querySelector('.img-upload__form');
   var closeButton = photoSavingForm.querySelector('#upload-cancel');
 
-  var imageEditingContainer = photoSavingForm.querySelector('.img-upload__overlay');
-  var effectFieldset = photoSavingForm.querySelector('.effect-level');
-  var previewImg = imageEditingContainer.querySelector('.img-upload__preview img');
-  var previewImgDefault = previewImg.attributes.src.value;
-
-  var slidePin = imageEditingContainer.querySelector('.effect-level__pin');
-  var slideLine = imageEditingContainer.querySelector('.effect-level__line');
-  var effectDepth = imageEditingContainer.querySelector('.effect-level__depth');
-
-  var effectList = imageEditingContainer.querySelector('.effects__list');
-  var effectLevelValue = imageEditingContainer.querySelector('.effect-level__value');
-  var effectPreviewImgs = effectList.querySelectorAll('.effects__preview');
-
-  var smallerButton = imageEditingContainer.querySelector('.scale__control--smaller');
-  var biggerButton = imageEditingContainer.querySelector('.scale__control--bigger');
-  var scaleValueInput = imageEditingContainer.querySelector('.scale__control--value');
-
   var fileChooser = photoSavingForm.querySelector('#upload-file');
 
+  var imageContainer = photoSavingForm.querySelector('.img-upload__overlay');
+  var previewImg = imageContainer.querySelector('.img-upload__preview img');
+  var previewImgDefault = previewImg.attributes.src.value;
+
+  var smallerButton = imageContainer.querySelector('.scale__control--smaller');
+  var biggerButton = imageContainer.querySelector('.scale__control--bigger');
+  var scaleValueInput = imageContainer.querySelector('.scale__control--value');
+
+  var effectFieldset = imageContainer.querySelector('.effect-level');
+  var effectLevelInput = effectFieldset.querySelector('.effect-level__value');
+  var slideLine = effectFieldset.querySelector('.effect-level__line');
+  var slidePin = effectFieldset.querySelector('.effect-level__pin');
+  var effectDepth = effectFieldset.querySelector('.effect-level__depth');
+
+  var effectList = imageContainer.querySelector('.effects__list');
+  var effectPreviewImgs = effectList.querySelectorAll('.effects__preview');
+
   var setDefaultScale = function () {
-    scaleValueInput.value = DEFAULT_SCALE + '%';
+    scaleValueInput.value = DEFAULT_SCALE + window.const.CssUnits.PERCENT;
     previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
   };
 
   var setDefaultSlide = function () {
-    slidePin.style.left = SLIDE_LINE_WIDTH;
-    effectDepth.style.width = SLIDE_LINE_WIDTH;
-    effectLevelValue.value = '100';
+    slidePin.style.left = XBound.RIGHT + window.const.CssUnits.PX;
+    effectDepth.style.width = XBound.RIGHT + window.const.CssUnits.PX;
+    effectLevelInput.value = DEFAULT_EFFECT_LEVEL;
   };
 
   var changeFilter = function () {
@@ -49,14 +60,14 @@
   };
 
   var resetPhotoSavingForm = function () {
-    body.classList.remove(OPEN_MODAL);
-    imageEditingContainer.classList.add(HIDDEN_CLASS);
+    body.classList.remove(OPENED_POPUP);
+    imageContainer.classList.add(HIDDEN_CLASS);
     fileChooser.value = '';
     previewImg.src = previewImgDefault;
     effectList.querySelector('#effect-none').checked = true;
-    changeFilter();
     setDefaultScale();
     setDefaultSlide();
+    changeFilter();
     photoSavingForm.reset();
   };
 
@@ -81,17 +92,25 @@
           image.style.backgroundImage = 'url(' + reader.result + ')';
         });
 
-        imageEditingContainer.classList.remove(HIDDEN_CLASS);
-        body.classList.add(OPEN_MODAL);
+        imageContainer.classList.remove(HIDDEN_CLASS);
+        body.classList.add(OPENED_POPUP);
       });
 
       reader.readAsDataURL(file);
     }
   };
 
+  // ---------- read an image selected by the user ----------
+  fileChooser.addEventListener('change', function () {
+    setDefaultScale();
+
+    readFile();
+
+    slideLine.addEventListener('mousedown', onSlideLineMousedown);
+  });
+
   // ---------------------- close a popup ---------------------
-  // an image loading window closing handler
-  var onImageEditingContainerClose = function () {
+  var onImageContainerClose = function () {
     resetPhotoSavingForm();
   };
 
@@ -101,7 +120,7 @@
     }
   };
 
-  closeButton.addEventListener('click', onImageEditingContainerClose);
+  closeButton.addEventListener('click', onImageContainerClose);
   document.addEventListener('keydown', isEscape);
   // ---------------------- close a popup ---------------------
 
@@ -117,7 +136,7 @@
 
   var onBiggerButtonClick = function () {
     var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
-    if (scaleCurrentValue < 100) {
+    if (scaleCurrentValue < DEFAULT_SCALE) {
       scaleCurrentValue += SCALE_STEP;
       previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
       scaleValueInput.value = scaleCurrentValue + '%';
@@ -137,10 +156,6 @@
     heat: 'brightness',
   };
 
-  // slidePin.style.left = '453px';
-  // effectDepth.style.width = '453px';
-  // effectLevelValue.value = '100';
-
   var xCoord;
   var onSlideLineMousedown = function (evt) {
     if (!(evt.button === window.const.MOUSE_LEFT_BUTTON)) {
@@ -152,30 +167,31 @@
 
     var onSlideLineMousemove = function (moveEvt) {
       moveEvt.preventDefault();
+
       var shiftX = startX - moveEvt.clientX;
       startX = moveEvt.clientX;
       xCoord = slidePin.offsetLeft - shiftX;
-      if (xCoord >= 0 && xCoord <= 453) {
-        slidePin.style.left = xCoord + 'px';
-        effectDepth.style.width = xCoord + 'px';
 
-        var effectValue = Math.round((xCoord / 453) * 100);
-        effectLevelValue.value = effectValue;
+      if (xCoord >= XBound.LEFT && xCoord <= XBound.RIGHT) {
+        slidePin.style.left = xCoord + window.const.CssUnits.PX;
+        effectDepth.style.width = xCoord + window.const.CssUnits.PX;
+
+        var effectValue = Math.round((xCoord / XBound.RIGHT) * DEFAULT_EFFECT_LEVEL);
+        effectLevelInput.value = effectValue;
 
         var effectName = EffectToNameMap[selectedEffect];
 
-        if (effectName === 'blur') {
-          var effectValue1 = Math.round((effectValue / 100 * 3) * 100) / 100 + 'px';
-          previewImg.style.filter = effectName + '(' + effectValue1 + ')';
+        if (effectName === Effect.BLUR) {
+          effectValue = Math.round((effectValue / DEFAULT_EFFECT_LEVEL * BLUR_MAX_VALUE) * DEFAULT_EFFECT_LEVEL) / DEFAULT_EFFECT_LEVEL + window.const.CssUnits.PX;
+          previewImg.style.filter = effectName + '(' + effectValue + ')';
           return;
         }
-        if (effectName === 'brightness') {
-          var effectValue2 = effectValue / 100 * 2 + 1;
-          previewImg.style.filter = '';
-          previewImg.style.filter = effectName + '(' + effectValue2 + ')';
+        if (effectName === Effect.BRIGHTNESS) {
+          effectValue = effectValue / DEFAULT_EFFECT_LEVEL * BRIGHTNESS_MAX_VALUE + 1;
+          previewImg.style.filter = effectName + '(' + effectValue + ')';
           return;
         }
-        previewImg.style.filter = effectName + '(' + effectValue / 100 + ')';
+        previewImg.style.filter = effectName + '(' + effectValue / DEFAULT_EFFECT_LEVEL + ')';
       }
     };
 
@@ -190,24 +206,14 @@
   };
   // ---------------------- move a slide --------------------
 
-  // read an image selected by the user
-  fileChooser.addEventListener('change', function () {
-    setDefaultScale();
-
-    readFile();
-
-    slideLine.addEventListener('mousedown', onSlideLineMousedown);
-  });
-
-
   // ---------------------- set an effect -------------------
   var setPictureEffect = function (effect) {
-    if (effect === 'none') {
-      effectFieldset.classList.add('hidden');
+    if (effect === NO_EFFECT) {
+      effectFieldset.classList.add(HIDDEN_CLASS);
       changeFilter();
       return;
     }
-    effectFieldset.classList.remove('hidden');
+    effectFieldset.classList.remove(HIDDEN_CLASS);
 
     changeFilter();
 
@@ -226,7 +232,6 @@
   };
   effectList.addEventListener('click', onEffectListClick);
   // ---------------------- set an effect -------------------
-
 
   // ---------------------- submit a form -------------------
   // get a container to insert a popup
