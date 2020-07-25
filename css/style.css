@@ -1454,3 +1454,9 @@ main {
   text-align: center;
   background-color: darkorange;
 }
+
+/* Подсветка поля с невалидным хэтегом */
+.img-upload__form input:invalid {
+  -webkit-box-shadow: 0px 0px 4px 2px red;
+          box-shadow: 0px 0px 4px 2px red;
+}

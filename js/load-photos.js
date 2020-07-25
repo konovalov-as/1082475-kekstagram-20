@@ -1,6 +1,8 @@
 'use strict';
 
 (function () {
+  var PHOTOS_COUNT = 10;
+
   // get a container for inserting photos
   var photoContainer = document.querySelector('.pictures');
 
@@ -68,7 +70,7 @@
 
     if (evt.target.matches('#filter-random')) {
       setActiveButton(evt);
-      while (filterPhotos.length < 10) {
+      while (filterPhotos.length < PHOTOS_COUNT) {
         var randomNumber = getRandomNumber(0, photos.length - 1);
         if (!filterPhotos.includes(photos[randomNumber])) {
           filterPhotos.push(photos[randomNumber]);
