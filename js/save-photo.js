@@ -3,7 +3,7 @@
 (function () {
   var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
   var HIDDEN_CLASS = 'hidden';
-  var OPENED_POPUP = 'modal-open';
+  var OPENED_POPUP_CLASS = 'modal-open';
   var DEFAULT_SCALE = 100;
   var SCALE_STEP = 25;
   var DEFAULT_EFFECT_LEVEL = 100;
@@ -19,9 +19,9 @@
     BRIGHTNESS: 'brightness',
   };
 
-  var body = document.querySelector('body');
+  var indexBody = document.querySelector('body');
 
-  var photoSavingForm = body.querySelector('.img-upload__form');
+  var photoSavingForm = indexBody.querySelector('.img-upload__form');
   var closeButton = photoSavingForm.querySelector('#upload-cancel');
 
   var fileChooser = photoSavingForm.querySelector('#upload-file');
@@ -44,30 +44,30 @@
   var effectPreviewImgs = effectList.querySelectorAll('.effects__preview');
 
   var setDefaultScale = function () {
-    scaleValueInput.value = DEFAULT_SCALE + window.const.CssUnits.PERCENT;
+    scaleValueInput.value = DEFAULT_SCALE + window.const.CssUnit.PERCENT;
     previewImg.style.transform = 'scale(' + DEFAULT_SCALE / DEFAULT_SCALE + ')';
   };
 
   var setDefaultSlide = function () {
-    slidePin.style.left = XBound.RIGHT + window.const.CssUnits.PX;
-    effectDepth.style.width = XBound.RIGHT + window.const.CssUnits.PX;
+    slidePin.style.left = XBound.RIGHT + window.const.CssUnit.PX;
+    effectDepth.style.width = XBound.RIGHT + window.const.CssUnit.PX;
     effectLevelInput.value = DEFAULT_EFFECT_LEVEL;
   };
 
-  var changeFilter = function () {
+  var resetFilter = function () {
     previewImg.className = '';
     previewImg.style.filter = '';
   };
 
   var resetPhotoSavingForm = function () {
-    body.classList.remove(OPENED_POPUP);
+    indexBody.classList.remove(OPENED_POPUP_CLASS);
     imageContainer.classList.add(HIDDEN_CLASS);
     fileChooser.value = '';
     previewImg.src = previewImgDefault;
     effectList.querySelector('#effect-none').checked = true;
     setDefaultScale();
     setDefaultSlide();
-    changeFilter();
+    resetFilter();
     photoSavingForm.reset();
   };
 
@@ -93,7 +93,7 @@
         });
 
         imageContainer.classList.remove(HIDDEN_CLASS);
-        body.classList.add(OPENED_POPUP);
+        indexBody.classList.add(OPENED_POPUP_CLASS);
       });
 
       reader.readAsDataURL(file);
@@ -110,37 +110,32 @@
   });
 
   // ---------------------- close a popup ---------------------
-  var onImageContainerClose = function () {
+  var onCloseButtonClick = function () {
     resetPhotoSavingForm();
   };
-
-  var isEscape = function (evt) {
-    if (evt.key === window.const.Key.ESCAPE) {
-      resetPhotoSavingForm();
-    }
-  };
-
-  closeButton.addEventListener('click', onImageContainerClose);
-  document.addEventListener('keydown', isEscape);
+  closeButton.addEventListener('click', onCloseButtonClick);
+  document.addEventListener('keydown', window.util.isEscape);
   // ---------------------- close a popup ---------------------
 
   // ---------------------- change a scale --------------------
   var onSmallerButtonClick = function () {
     var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
-    if (scaleCurrentValue > SCALE_STEP) {
-      scaleCurrentValue -= SCALE_STEP;
-      previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
-      scaleValueInput.value = scaleCurrentValue + '%';
+    if (!(scaleCurrentValue > SCALE_STEP)) {
+      return;
     }
+    scaleCurrentValue -= SCALE_STEP;
+    previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
+    scaleValueInput.value = scaleCurrentValue + '%';
   };
 
   var onBiggerButtonClick = function () {
     var scaleCurrentValue = Number(scaleValueInput.value.slice(0, -1));
-    if (scaleCurrentValue < DEFAULT_SCALE) {
-      scaleCurrentValue += SCALE_STEP;
-      previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
-      scaleValueInput.value = scaleCurrentValue + '%';
+    if (!(scaleCurrentValue < DEFAULT_SCALE)) {
+      return;
     }
+    scaleCurrentValue += SCALE_STEP;
+    previewImg.style.transform = 'scale(' + scaleCurrentValue / DEFAULT_SCALE + ')';
+    scaleValueInput.value = scaleCurrentValue + '%';
   };
 
   smallerButton.addEventListener('click', onSmallerButtonClick);
@@ -173,8 +168,8 @@
       xCoord = slidePin.offsetLeft - shiftX;
 
       if (xCoord >= XBound.LEFT && xCoord <= XBound.RIGHT) {
-        slidePin.style.left = xCoord + window.const.CssUnits.PX;
-        effectDepth.style.width = xCoord + window.const.CssUnits.PX;
+        slidePin.style.left = xCoord + window.const.CssUnit.PX;
+        effectDepth.style.width = xCoord + window.const.CssUnit.PX;
 
         var effectValue = Math.round((xCoord / XBound.RIGHT) * DEFAULT_EFFECT_LEVEL);
         effectLevelInput.value = effectValue;
@@ -182,7 +177,7 @@
         var effectName = EffectToNameMap[selectedEffect];
 
         if (effectName === Effect.BLUR) {
-          effectValue = Math.round((effectValue / DEFAULT_EFFECT_LEVEL * BLUR_MAX_VALUE) * DEFAULT_EFFECT_LEVEL) / DEFAULT_EFFECT_LEVEL + window.const.CssUnits.PX;
+          effectValue = Math.round((effectValue / DEFAULT_EFFECT_LEVEL * BLUR_MAX_VALUE) * DEFAULT_EFFECT_LEVEL) / DEFAULT_EFFECT_LEVEL + window.const.CssUnit.PX;
           previewImg.style.filter = effectName + '(' + effectValue + ')';
           return;
         }
@@ -210,12 +205,12 @@
   var setPictureEffect = function (effect) {
     if (effect === NO_EFFECT) {
       effectFieldset.classList.add(HIDDEN_CLASS);
-      changeFilter();
+      resetFilter();
       return;
     }
     effectFieldset.classList.remove(HIDDEN_CLASS);
 
-    changeFilter();
+    resetFilter();
 
     previewImg.classList.add('effects__preview--' + effect);
 
@@ -324,5 +319,9 @@
   // submit a photo saving form
   photoSavingForm.addEventListener('submit', onPhotoSavingFormSubmit);
   // ---------------------- submit a form -------------------
+
+  window.savePhoto = {
+    resetForm: resetPhotoSavingForm
+  };
 
 })();

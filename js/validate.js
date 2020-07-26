@@ -1,11 +1,11 @@
 'use strict';
 
 (function () {
-  var REGULAR_EXPRESSION = /[^A-Za-z0-9А-Яа-я]/;
   var HASHTAG_MAX_LENGTH = 20;
   var MAX_HASHTAGS_COUNT = 5;
   var hashtagsInput = document.querySelector('.text__hashtags');
   var commentText = document.querySelector('.text__description');
+  var hashtagPattern = /[^A-Za-z0-9А-Яа-я]/;
 
   // validate hashtags
   var checkHashtags = function () {
@@ -13,7 +13,7 @@
 
     // collect unique hashtags
     var uniqueHashtags = [];
-    var isOneHashtags = function (hashtag) {
+    var standalone = function (hashtag) {
       var hashtagLowerCase = hashtag.toLowerCase();
       var isOne = false;
       if (uniqueHashtags.indexOf(hashtagLowerCase) !== -1) {
@@ -36,7 +36,7 @@
         hashtagsInput.setCustomValidity('Хэш-теги разделяются пробелами');
         return;
       }
-      if (REGULAR_EXPRESSION.test(hashtag.replace('#', ''))) {
+      if (hashtagPattern.test(hashtag.replace('#', ''))) {
         hashtagsInput.setCustomValidity('Строка после символа # (решётка) должна состоять только из букв и чисел. Пробелы, эмодзи, спецсимволы (#, @, $, - и т. п.) не допустимы. ' + (i + 1) + '-ый хэш-тег с ошибкой');
         return;
       }
@@ -52,7 +52,7 @@
         hashtagsInput.setCustomValidity('Нельзя указать больше ' + MAX_HASHTAGS_COUNT + ' хэш-тегов');
         return;
       }
-      if (isOneHashtags(hashtag)) {
+      if (standalone(hashtag)) {
         hashtagsInput.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды. Хэш-теги нечувствительны к регистру. #ХэшТег и #хэштег считаются одним и тем же тегом');
         return;
       }

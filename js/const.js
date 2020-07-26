@@ -2,7 +2,7 @@
 
 (function () {
   var MOUSE_LEFT_BUTTON = 0;
-  var CssUnits = {
+  var CssUnit = {
     PX: 'px',
     PERCENT: '%',
   };
@@ -14,7 +14,7 @@
 
   window.const = {
     MOUSE_LEFT_BUTTON: MOUSE_LEFT_BUTTON,
-    CssUnits: CssUnits,
+    CssUnit: CssUnit,
     Key: Key,
   };
 

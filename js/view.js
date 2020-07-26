@@ -2,13 +2,13 @@
 
 (function () {
   var HIDDEN_CLASS = 'hidden';
-  var OPEN_MODAL = 'modal-open';
+  var OPENED_POPUP_CLASS = 'modal-open';
   var MAX_COMMENTS_COUNT = 5;
 
   // get a big photo container
   var bigPhotoContainer = document.querySelector('.big-picture');
   // get a body tag
-  var body = document.querySelector('body');
+  var indexBody = document.querySelector('body');
   // get a main tag
   var mainContainer = document.querySelector('main');
 
@@ -41,9 +41,9 @@
       for (var i = 0; i < allComments.length; i++) {
         if (i < showedComments) {
           allComments[i].classList.remove(HIDDEN_CLASS);
-        } else {
-          allComments[i].classList.add(HIDDEN_CLASS);
+          continue;
         }
+        allComments[i].classList.add(HIDDEN_CLASS);
       }
       commentsCount.textContent = showedComments;
     };
@@ -86,21 +86,21 @@
     // a big photo close callback by a click
     var onCloseButtonClick = function () {
       photoElement.classList.add(HIDDEN_CLASS);
-      body.classList.remove(OPEN_MODAL);
-      document.removeEventListener('keydown', onDocumentPress);
+      indexBody.classList.remove(OPENED_POPUP_CLASS);
+      document.removeEventListener('keydown', onPhotoPopupPress);
     };
 
     var closeButton = photoElement.querySelector('.big-picture__cancel');
     closeButton.addEventListener('click', onCloseButtonClick);
 
     // a big photo close callback by an Esc key
-    var onDocumentPress = function (evt) {
+    var onPhotoPopupPress = function (evt) {
       if (!(evt.key === window.const.Key.ESCAPE)) {
         return;
       }
       onCloseButtonClick();
     };
-    document.addEventListener('keydown', onDocumentPress);
+    document.addEventListener('keydown', onPhotoPopupPress);
     return photoElement;
   };
 
@@ -112,11 +112,11 @@
     mainContainer.appendChild(fragment);
     bigPhotoContainer.remove();
 
-    body.classList.add(OPEN_MODAL);
+    indexBody.classList.add(OPENED_POPUP_CLASS);
   };
 
   // create a photos block handler
-  var onPhotoContainerClick = function (evt, photos) {
+  var openPhoto = function (evt, photos) {
     if (!(evt.target && evt.target.matches('.picture') || evt.target.matches('.picture__img'))) {
       return;
     }
@@ -132,7 +132,7 @@
 
 
   window.view = {
-    onPhotoContainerClick: onPhotoContainerClick,
+    openPhoto: openPhoto,
   };
 
 })();

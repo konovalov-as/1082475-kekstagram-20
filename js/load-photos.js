@@ -23,8 +23,8 @@
   // render photos on the page
   var renderPhotos = function (photos) {
     var fragment = document.createDocumentFragment();
-    photos.forEach(function (photo, indexPhoto) {
-      fragment.appendChild(createPhoto(photo, indexPhoto));
+    photos.forEach(function (photo, index) {
+      fragment.appendChild(createPhoto(photo, index));
     });
     photoContainer.appendChild(fragment);
   };
@@ -33,7 +33,7 @@
   var onLoad = function (photos) {
     renderPhotos(photos);
     photoContainer.addEventListener('click', function (evt) {
-      window.view.onPhotoContainerClick(evt, photos);
+      window.view.openPhoto(evt, photos);
     });
     filter(photos);
   };
@@ -48,38 +48,32 @@
 
   window.backend.load(onLoad, onError);
 
-  var getRandomNumber = function (min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min; // Максимум и минимум включаются
-  };
-
-  var setActiveButton = function (evt) {
-    Array.from(evt.target.parentElement).forEach(function (button) {
+  var setActiveButton = function (target) {
+    Array.from(target.parentElement).forEach(function (button) {
       button.classList.remove('img-filters__button--active');
     });
-    evt.target.classList.add('img-filters__button--active');
+    target.classList.add('img-filters__button--active');
   };
 
-  var setFiltersPhotos = function (evt, photos) {
+  var setFiltersPhotos = function (target, photos) {
     var filterPhotos = [];
-    if (evt.target.matches('#filter-default')) {
-      setActiveButton(evt);
+    if (target.matches('#filter-default')) {
+      setActiveButton(target);
       filterPhotos = photos.slice();
     }
 
-    if (evt.target.matches('#filter-random')) {
-      setActiveButton(evt);
+    if (target.matches('#filter-random')) {
+      setActiveButton(target);
       while (filterPhotos.length < PHOTOS_COUNT) {
-        var randomNumber = getRandomNumber(0, photos.length - 1);
+        var randomNumber = window.util.getRandomNumber(0, photos.length - 1);
         if (!filterPhotos.includes(photos[randomNumber])) {
           filterPhotos.push(photos[randomNumber]);
         }
       }
     }
 
-    if (evt.target.matches('#filter-discussed')) {
-      setActiveButton(evt);
+    if (target.matches('#filter-discussed')) {
+      setActiveButton(target);
       var photosCopy = photos.slice();
       photosCopy.sort(function (first, second) {
         if (first.comments.length < second.comments.length) {
@@ -112,7 +106,7 @@
         return;
       }
       window.debounce(function () {
-        setFiltersPhotos(evt, photos);
+        setFiltersPhotos(evt.target, photos);
       });
     };
     filterForm.addEventListener('click', onFilterFormClick);
