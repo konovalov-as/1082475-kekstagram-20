@@ -9,7 +9,7 @@
 
   var isEscape = function (evt) {
     if (evt.key === window.const.Key.ESCAPE) {
-      window.savePhoto.resetForm();
+      window.addPhoto.resetForm();
     }
   };
 
