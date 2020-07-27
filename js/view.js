@@ -48,7 +48,10 @@
     };
     document.addEventListener('keydown', onPhotoPopupPress);
 
-    photoElement.addEventListener('click', function () {
+    photoElement.addEventListener('click', function (evt) {
+      if (!evt.target.matches('.overlay')) {
+        return;
+      }
       closeBigPhoto();
     });
     return photoElement;
