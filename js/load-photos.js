@@ -38,12 +38,58 @@
     filter(photos);
   };
 
+  // get a container to insert a popup
+  var mainContainer = document.querySelector('main');
+
+  // get a error popup template
+  var errorPopupTemplate = document.querySelector('#error')
+    .content
+    .querySelector('.error');
+
+  // send an ad to the server
+  var closePopupByKey = function (evt, popup) {
+    if (!evt.key === window.const.Key.ESCAPE) {
+      return;
+    }
+    if (popup) {
+      popup.remove();
+    }
+  };
+
+  var renderPopup = function (popup, errorMessage) {
+    var popupElement = popup.cloneNode(true);
+    popupElement.querySelector('.error__title').textContent = errorMessage;
+    popupElement.querySelector('.error__button').textContent = 'Попробовать снова';
+    popupElement.addEventListener('click', function () {
+      window.backend.load(onLoad, onError);
+    });
+    mainContainer.appendChild(popupElement);
+  };
+
   // display an error message
   var onError = function (errorMessage) {
-    var node = document.createElement('div');
-    node.classList.add('error-message');
-    node.textContent = errorMessage;
-    document.body.insertAdjacentElement('afterbegin', node);
+    renderPopup(errorPopupTemplate, errorMessage);
+
+    // close a popup by a click
+    var errorContainer = mainContainer.querySelector('.error');
+
+    // close a popup by a click
+    errorContainer.addEventListener('click', function (evt) {
+      if (!(evt.target.matches('.error') || evt.target.matches('.error__button'))) {
+        return;
+      }
+      errorContainer.remove();
+      document.removeEventListener('keydown', onErrorPopupPress);
+    });
+
+    // close a popup by an Esc key
+    var onErrorPopupPress = function (evt) {
+      closePopupByKey(evt, errorContainer);
+      document.removeEventListener('keydown', onErrorPopupPress);
+    };
+
+    // error popup close handler
+    document.addEventListener('keydown', onErrorPopupPress);
   };
 
   window.backend.load(onLoad, onError);

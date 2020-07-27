@@ -25,11 +25,15 @@
     window.comments.render(photo.comments, commentsContainer);
     window.comments.show(commentsContainer, photoElement);
 
-    // a big photo close callback by a click
-    var onCloseButtonClick = function () {
+    var closeBigPhoto = function () {
       photoElement.classList.add(HIDDEN_CLASS);
       indexBody.classList.remove(OPENED_POPUP_CLASS);
       document.removeEventListener('keydown', onPhotoPopupPress);
+    };
+
+    // a big photo close callback by a click
+    var onCloseButtonClick = function () {
+      closeBigPhoto();
     };
 
     var closeButton = photoElement.querySelector('.big-picture__cancel');
@@ -40,9 +44,13 @@
       if (!(evt.key === window.const.Key.ESCAPE)) {
         return;
       }
-      onCloseButtonClick();
+      closeBigPhoto();
     };
     document.addEventListener('keydown', onPhotoPopupPress);
+
+    photoElement.addEventListener('click', function () {
+      closeBigPhoto();
+    });
     return photoElement;
   };
 
