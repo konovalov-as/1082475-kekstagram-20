@@ -76,7 +76,7 @@
 
     // get a photo
     var picture = photos.find(function (photo) {
-      return photo.url === evt.target.attributes.src.value;
+      return photo.url === evt.target.closest('.picture').children[0].attributes.src.value;
     });
 
     // render a photo
